@@ -1,38 +1,45 @@
-package com;
+package com.memorymonitor;
 
+/**
+ * @author xblia
+ * Jun 2, 2015 - 9:02:25 PM
+ */
 public class MemoryMonitor extends Thread 
 {
 	public static String line = "<br/>";
 	private IMonitorMemory monitorMemory;
 	private Runtime rt;
+	private boolean isRunning = true;
 	
 	public MemoryMonitor(IMonitorMemory monitorMemory) {
 		super();
 		this.monitorMemory = monitorMemory;
 		rt = Runtime.getRuntime();
 	}
+	
+	
 
 	@Override
 	public void run() 
 	{
-		while(true)
+		while(isRunning)
 		{
 			long freeMemory = rt.freeMemory();
 			long maxMemory = rt.totalMemory();
-			long usedMemory = rt.totalMemory() - rt.freeMemory();
-			StringBuilder strInfo = new StringBuilder();
-			strInfo.append("<html>");
-			strInfo.append(" max:" + maxMemory + "(" +convertFileSize(maxMemory)+")" +line);
-			strInfo.append("free:" + freeMemory + "(" +convertFileSize(freeMemory)+")" +line);
-			strInfo.append(" use:" + usedMemory + "(" +convertFileSize(usedMemory)+")" +line);
-			strInfo.append("<html/>");
-			monitorMemory.onMemoryChange(strInfo.toString());
+			long usedMemory = maxMemory - freeMemory;
+			String strInfo =convertFileSize(usedMemory)  + " / " + convertFileSize(maxMemory);
+			monitorMemory.onMemoryChange(strInfo, maxMemory, usedMemory);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void stopMonitor()
+	{
+		this.isRunning = false;
 	}
 	
 	public static String convertFileSize(long size) {
